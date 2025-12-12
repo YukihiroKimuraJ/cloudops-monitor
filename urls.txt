@@ -1,0 +1,10 @@
+# Example URLs for CloudOps Monitor
+https://www.google.com
+https://github.com
+https://www.amazon.co.jp
+
+# You can add URLs without https://
+example.com
+yahoo.co.jp
+
+# Comments and blank lines are ignored
