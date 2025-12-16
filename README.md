@@ -9,6 +9,10 @@
 - Graceful shutdown with Ctrl+C
 - Configurable timeout (10s) and concurrency (10 workers)
 
+## 📝 Blog Post
+詳しい開発の背景や学んだことは、こちらのブログ記事をご覧ください：
+**[レガシーインフラエンジニアがGo言語でURL監視ツールを作った話](https://zenn.dev/yukihirokimuraj/articles/13ee8236b029d6)** (Japanese)
+
 ## Usage
 ```bash
 go run main.go urls.txt
