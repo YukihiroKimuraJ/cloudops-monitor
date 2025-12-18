@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,7 +23,16 @@ func run(file string) (*os.File, error) {
 	return f, nil
 }
 
+func logconfig() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+}
+
 func main() {
+	startTime := time.Now()
+	logconfig()
 	var f *os.File
 	var err error
 
@@ -84,25 +94,38 @@ func main() {
 			req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 			if err != nil {
 				results[idx] = fmt.Sprintf("%s -> ERROR: %v", orig, err)
+				slog.Error("request creation failed", "line_number", idx+1, "url", orig, "error", err)
 				return
 			}
 
 			resp, err := client.Do(req)
 			if err != nil {
 				results[idx] = fmt.Sprintf("%s -> ERROR: %v", orig, err)
+				slog.Error("http request failed", "line_number", idx+1, "url", orig, "error", err)
 				return
 			}
 			defer resp.Body.Close()
 			results[idx] = fmt.Sprintf("%s -> %d %s", orig, resp.StatusCode, resp.Status)
+			slog.Info("http check completed", "line_number", idx+1, "url", orig, "statuscode", resp.StatusCode, "status", resp.Status)
 		}(i, url, orig)
 
 	}
 
 	wg.Wait()
 
+	var success, failed int
 	for _, r := range results {
-		fmt.Println(r)
+		if strings.Contains(r, "ERROR") {
+			failed++
+		} else {
+			success++
+		}
 	}
 
+	slog.Info("monitoring completed",
+		"total_urls", len(lines),
+		"success", success,
+		"failed", failed,
+		"duration", time.Since(startTime).String(),
+		"timestamp", time.Now().Format(time.RFC3339))
 }
-
