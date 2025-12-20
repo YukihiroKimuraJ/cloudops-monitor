@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
-	"fmt"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,13 +14,8 @@ import (
 	"time"
 )
 
-func run(file string) (*os.File, error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return nil, fmt.Errorf("run: failed to open file %q: %w", file, err)
-	}
-	// ... work, return errors rather than calling os.Exit
-	return f, nil
+type checkResult struct {
+	success bool
 }
 
 func logconfig() {
@@ -33,22 +28,24 @@ func logconfig() {
 func main() {
 	startTime := time.Now()
 	logconfig()
-	var f *os.File
-	var err error
 
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Error : A file path argument is required.")
-		fmt.Fprintln(os.Stderr, "Usage : go run main.go <path-to urls.txt")
+	var (
+		filename    = flag.String("f", "", "path to urls files")
+		timeout     = flag.Int("t", 10, "timeout in seconds")
+		concurrency = flag.Int("c", 10, "number of concurrent requests")
+	)
+	flag.Parse()
+
+	if *filename == "" {
+		slog.Error("missing file argument", "usage", "go run main.go -f <path-to-urls.txt>")
+		flag.Usage()
 		os.Exit(1)
 	}
-	file := os.Args[1]
-	f, err = run(file)
 
+	f, err := os.Open(*filename)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		slog.Error("failed to open file", "file", *filename, "error", err)
 	}
-
 	defer f.Close()
 
 	var lines []string
@@ -61,20 +58,24 @@ func main() {
 		lines = append(lines, line)
 	}
 	if err := sc.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "read %s: %v\n", file, err)
+		slog.Error("failed to read file", "file", *filename, "error", err)
 		os.Exit(1)
 	}
+
+	slog.Info("monitoring started",
+		"total_urls", len(lines),
+		"timeout", *timeout,
+		"concurrency", *concurrency)
 
 	// Create a context that is canceled on an interrupt signal (Ctrl+C).
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	results := make([]string, len(lines))
+	client := &http.Client{Timeout: time.Duration(*timeout) * time.Second}
+	results := make([]checkResult, len(lines))
 	var wg sync.WaitGroup
 
-	const concurrency = 10
-	sem := make(chan struct{}, concurrency)
+	sem := make(chan struct{}, *concurrency)
 
 	for i, raw := range lines {
 		i := i
@@ -93,37 +94,58 @@ func main() {
 
 			req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 			if err != nil {
-				results[idx] = fmt.Sprintf("%s -> ERROR: %v", orig, err)
-				slog.Error("request creation failed", "line_number", idx+1, "url", orig, "error", err)
+				results[idx] = checkResult{success: false}
+				slog.Error("request creation failed",
+					"line_number", idx+1,
+					"url", orig,
+					"error", err)
 				return
 			}
 
 			resp, err := client.Do(req)
 			if err != nil {
-				results[idx] = fmt.Sprintf("%s -> ERROR: %v", orig, err)
-				slog.Error("http request failed", "line_number", idx+1, "url", orig, "error", err)
+				results[idx] = checkResult{success: false}
+				slog.Error("http request failed",
+					"line_number", idx+1,
+					"url", orig,
+					"error", err)
 				return
 			}
 			defer resp.Body.Close()
-			results[idx] = fmt.Sprintf("%s -> %d %s", orig, resp.StatusCode, resp.Status)
-			slog.Info("http check completed", "line_number", idx+1, "url", orig, "statuscode", resp.StatusCode, "status", resp.Status)
-		}(i, url, orig)
 
+			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+				results[idx] = checkResult{success: true}
+				slog.Info("http check completed",
+					"line_number", idx+1,
+					"url", orig,
+					"statuscode", resp.StatusCode,
+					"status", resp.Status)
+			} else {
+				results[idx] = checkResult{success: false}
+				slog.Warn("http check failed (bad status)",
+					"line_number", idx+1,
+					"url", orig,
+					"statuscode", resp.StatusCode,
+					"status", resp.Status)
+			}
+		}(i, url, orig)
 	}
 
 	wg.Wait()
 
 	var success, failed int
 	for _, r := range results {
-		if strings.Contains(r, "ERROR") {
-			failed++
-		} else {
+		if r.success {
 			success++
+		} else {
+			failed++
 		}
 	}
 
 	slog.Info("monitoring completed",
 		"total_urls", len(lines),
+		"timeout", *timeout,
+		"concurrency", *concurrency,
 		"success", success,
 		"failed", failed,
 		"duration", time.Since(startTime).String(),
