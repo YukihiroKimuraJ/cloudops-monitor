@@ -92,7 +92,8 @@ func main() {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+			statusCode, status, err := CheckOnce(ctx, client, orig)
+
 			if err != nil {
 				results[idx] = checkResult{success: false}
 				slog.Error("request creation failed",
@@ -102,31 +103,20 @@ func main() {
 				return
 			}
 
-			resp, err := client.Do(req)
-			if err != nil {
-				results[idx] = checkResult{success: false}
-				slog.Error("http request failed",
-					"line_number", idx+1,
-					"url", orig,
-					"error", err)
-				return
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			if statusCode >= 200 && statusCode < 300 {
 				results[idx] = checkResult{success: true}
 				slog.Info("http check completed",
 					"line_number", idx+1,
 					"url", orig,
-					"statuscode", resp.StatusCode,
-					"status", resp.Status)
+					"statuscode", statusCode,
+					"status", status)
 			} else {
 				results[idx] = checkResult{success: false}
 				slog.Warn("http check failed (bad status)",
 					"line_number", idx+1,
 					"url", orig,
-					"statuscode", resp.StatusCode,
-					"status", resp.Status)
+					"statuscode", statusCode,
+					"status", status)
 			}
 		}(i, url, orig)
 	}
