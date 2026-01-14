@@ -78,21 +78,21 @@ func main() {
 
 	sem := make(chan struct{}, *concurrency)
 
-	for i, raw := range lines {
+	for i, rawURL := range lines {
 		wg.Add(1)
 		sem <- struct{}{}
 
-		go func(idx int, orig string) {
+		go func(idx int, url string) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			statusCode, status, err := CheckOnce(ctx, client, orig)
+			statusCode, status, err := CheckOnce(ctx, client, url)
 
 			if err != nil {
 				results[idx] = checkResult{success: false}
 				slog.Error("request creation failed",
 					"line_number", idx+1,
-					"url", orig,
+					"url", url,
 					"error", err)
 				return
 			}
@@ -101,18 +101,18 @@ func main() {
 				results[idx] = checkResult{success: true}
 				slog.Info("http check completed",
 					"line_number", idx+1,
-					"url", orig,
+					"url", url,
 					"statuscode", statusCode,
 					"status", status)
 			} else {
 				results[idx] = checkResult{success: false}
 				slog.Warn("http check failed (bad status)",
 					"line_number", idx+1,
-					"url", orig,
+					"url", url,
 					"statuscode", statusCode,
 					"status", status)
 			}
-		}(i, raw)
+		}(i, rawURL)
 	}
 
 	wg.Wait()
