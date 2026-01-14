@@ -79,17 +79,10 @@ func main() {
 	sem := make(chan struct{}, *concurrency)
 
 	for i, raw := range lines {
-		i := i
-		orig := raw
-		url := raw
-		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-			url = "https://" + url
-		}
-
 		wg.Add(1)
 		sem <- struct{}{}
 
-		go func(idx int, u, orig string) {
+		go func(idx int, orig string) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
@@ -119,7 +112,7 @@ func main() {
 					"statuscode", statusCode,
 					"status", status)
 			}
-		}(i, url, orig)
+		}(i, raw)
 	}
 
 	wg.Wait()
