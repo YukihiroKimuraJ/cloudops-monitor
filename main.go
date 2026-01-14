@@ -45,6 +45,7 @@ func main() {
 	f, err := os.Open(*filename)
 	if err != nil {
 		slog.Error("failed to open file", "file", *filename, "error", err)
+		os.Exit(1)
 	}
 	defer f.Close()
 
