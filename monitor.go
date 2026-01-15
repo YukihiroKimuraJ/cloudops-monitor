@@ -16,7 +16,7 @@ func normalizeURL(raw string) (string, error) {
 	if raw == "" {
 		return "", ErrEmptyURL
 	}
-	// URLにschemeがなければ https:// を付ける
+	// Add https:// prefix if URL scheme is missing
 	if !strings.HasPrefix(raw, "http://") && !strings.HasPrefix(raw, "https://") {
 		raw = "https://" + raw
 	}
