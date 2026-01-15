@@ -117,12 +117,12 @@ func main() {
 
 	wg.Wait()
 
-	var success, failed int
+	var successCount, failedCount int
 	for _, r := range results {
 		if r.success {
-			success++
+			successCount++
 		} else {
-			failed++
+			failedCount++
 		}
 	}
 
@@ -130,8 +130,8 @@ func main() {
 		"total_urls", len(lines),
 		"timeout", *timeout,
 		"concurrency", *concurrency,
-		"success", success,
-		"failed", failed,
+		"success", successCount,
+		"failed", failedCount,
 		"duration", time.Since(startTime).String(),
 		"timestamp", time.Now().Format(time.RFC3339))
 }
