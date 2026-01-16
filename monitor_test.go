@@ -44,20 +44,20 @@ func TestCheckOnce_Status500(t *testing.T) {
 
 func TestCheckOnce_Timeout(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(200 * time.Millisecond) // わざと遅延
+		time.Sleep(200 * time.Millisecond) 
 		w.WriteHeader(http.StatusOK)
 	}))
 	t.Cleanup(srv.Close)
 
-	// タイムアウトを短く設定して確実にエラーを起こす
+	// Set a short timeout to ensure an error occurs
 	client := &http.Client{Timeout: 30 * time.Millisecond}
 
 	_, _, err := CheckOnce(context.Background(), client, srv.URL)
 	if err == nil {
 		t.Fatalf("expected timeout error, got nil")
 	}
-	// タイムアウトエラーかどうか確認
-	// net/http のタイムアウトは os.IsTimeout または文字列チェックで判定
+	// Check whether the error is a timeout error
+	// Use isTimeoutError to determine timeout errors
 	if !isTimeoutError(err) {
 		t.Fatalf("expected timeout error, got: %v", err)
 	}
