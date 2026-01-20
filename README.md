@@ -100,7 +100,7 @@ CloudOps Monitor outputs structured JSON logs for easy parsing:
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.22 or later
 
 ### Project Structure
 
