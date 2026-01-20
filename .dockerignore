@@ -1,0 +1,46 @@
+# Binaries
+cloudops-monitor
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test files
+*.test
+*.out
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Go workspace
+go.work
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config files
+*.secret
+.env
+
+# Git
+.git/
+.gitignore
+
+# Documentation (optional - you might want to include README)
+# README.md
+
+# URL files (not included in image)
+urls.txt
+*.txt
+
+# CI/CD
+.github/
