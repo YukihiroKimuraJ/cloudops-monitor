@@ -10,6 +10,10 @@ cloudops-monitor
 *.test
 *.out
 
+# Test coverage
+coverage.out
+coverage.html
+
 # Go workspace
 go.work
 
