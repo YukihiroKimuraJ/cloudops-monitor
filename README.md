@@ -8,11 +8,11 @@ A lightweight, concurrent HTTP endpoint monitoring tool written in Go.
 
 ## Features
 
-- 🚀 **Concurrent Health Checks** - Monitor multiple URLs simultaneously with configurable worker pools
+- 🚀 **Concurrent Health Checks** - Monitor multiple URLs simultaneously with configurable worker pool size
 - 📊 **Structured Logging** - JSON-formatted logs using Go's `slog` package for easy integration with log aggregators
 - ⚙️ **Flexible Configuration** - Command-line flags for timeout, concurrency, and input file
 - 🛑 **Graceful Shutdown** - Clean termination with Ctrl+C signal handling
-- 🔗 **Smart URL Handling** - Auto-adds `https://` to URLs without protocol, supports comments in URL files
+- 🔗 **Smart URL Handling** - Automatically prepends https:// to URLs without a scheme, supports comments in URL files
 - ✅ **Well Tested** - Comprehensive unit tests including timeout handling
 - 🐳 **Docker Support** - Containerized deployment with multi-stage build
 
@@ -57,7 +57,7 @@ EOF
 # High concurrency (50 workers)
 ./cloudops-monitor -f urls.txt -c 50
 
-# Production setup
+# Example: production-like settings
 ./cloudops-monitor -f production-urls.txt -t 15 -c 20
 ```
 
