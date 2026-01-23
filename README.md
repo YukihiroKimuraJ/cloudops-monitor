@@ -14,6 +14,7 @@ A lightweight, concurrent HTTP endpoint monitoring tool written in Go.
 - 🛑 **Graceful Shutdown** - Clean termination with Ctrl+C signal handling
 - 🔗 **Smart URL Handling** - Auto-adds `https://` to URLs without protocol, supports comments in URL files
 - ✅ **Well Tested** - Comprehensive unit tests including timeout handling
+- 🐳 **Docker Support** - Containerized deployment with multi-stage build
 
 ## Quick Start
 
@@ -41,11 +42,11 @@ EOF
 
 ## Command-Line Options
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `-f` | Path to URL list file (required) | - |
-| `-t` | HTTP request timeout (seconds) | `10` |
-| `-c` | Number of concurrent workers | `10` |
+| Flag | Description                              | Default |
+|------|------------------------------------------|---------|
+| `-f` | Path to URL list file (required)         | -       |
+| `-t` | HTTP request timeout (seconds)           | `10`    |
+| `-c` | Number of concurrent workers             | `10`    |
 
 ### Examples
 
@@ -59,6 +60,26 @@ EOF
 # Production setup
 ./cloudops-monitor -f production-urls.txt -t 15 -c 20
 ```
+
+## Docker
+
+```bash
+# Build the Image
+docker build -t cloudops-monitor .
+
+# Run with volume mount (recommended)
+docker run --rm -v $(pwd)/urls.txt:/app/urls.txt cloudops-monitor -f /app/urls.txt
+
+# With custom timeout and concurrency
+docker run --rm -v $(pwd)/urls.txt:/app/urls.txt cloudops-monitor -f /app/urls.txt -t 30 -c 20
+```
+
+###Docker Image Details
+
+- Base Image: Alpine Linux (lightweight)
+- Build Method: Multi-stage build for optimized image size
+- Security: Runs as non-root user
+- URL Files: Must be mounted as volume (not included in image)
 
 ## URL File Format
 
@@ -109,6 +130,8 @@ cloudops-monitor/
 ├── main.go           # Entry point, CLI, and orchestration
 ├── monitor.go        # Core monitoring logic (CheckOnce, normalizeURL)
 ├── monitor_test.go   # Unit tests
+├── Dockerfile        # Docker image definition
+├── .dockerignore     # Docker build exclusions
 ├── urls.txt          # Sample URL list
 ├── .github/
 │   └── workflows/
@@ -167,14 +190,17 @@ go tool cover -html=coverage.out -o coverage.html
 ## Roadmap
 
 ### High Priority
-- [ ] Docker support
+
+- [x] Docker support
 - [ ] Retry logic with exponential backoff
 
 ### Medium Priority
+
 - [ ] Prometheus metrics endpoint (`/metrics`)
 - [ ] YAML/TOML configuration file
 
 ### Future Ideas
+
 - [ ] Alerting integrations (Slack, PagerDuty, Email)
 - [ ] Response time tracking and statistics
 
@@ -188,7 +214,7 @@ go tool cover -html=coverage.out -o coverage.html
 
 ## Author
 
-**Yukihiro Kimura**
+Yukihiro Kimura
 
 - Infrastructure Engineer with 7+ years of experience
 - AWS All 12 Certifications holder
