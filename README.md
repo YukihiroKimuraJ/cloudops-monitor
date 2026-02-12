@@ -133,6 +133,21 @@ cloudops-monitor/
 ├── Dockerfile        # Docker image definition
 ├── .dockerignore     # Docker build exclusions
 ├── urls.txt          # Sample URL list
+├── infra/            # Terraform (Infrastructure as Code)
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── versions.tf
+│   ├── nginx-health.conf
+│   └── modules/
+│       ├── nginx/
+│       │   ├── main.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       └── app/
+│           ├── main.tf
+│           ├── variables.tf
+│           └── outputs.tf
 ├── .github/
 │   └── workflows/
 │       └── ci.yml    # GitHub Actions CI
@@ -203,6 +218,33 @@ go tool cover -html=coverage.out -o coverage.html
 
 - [ ] Alerting integrations (Slack, PagerDuty, Email)
 - [ ] Response time tracking and statistics
+
+## Terraform (Infrastructure as Code)
+
+This project uses Terraform to provision cloudops-monitor and its monitoring target (nginx) in a local environment.
+
+### Overview
+
+- **Why Terraform**: Change management with `plan` / `apply` and reproducible environments
+- **What I built**: cloudops-monitor + nginx on the local Docker environment using Terraform (Docker Provider)
+- **What I learned**: Easier diff review, resource dependencies, and importance of state management
+- **Next**: Backend design, secret management, CI plan review, module conventions
+
+### Usage
+
+### Usage
+
+```bash
+cd infra
+terraform init
+terraform plan
+terraform apply
+terraform destroy
+```
+
+- `modules/nginx`: Monitoring target (nginx with /health endpoint)
+- `modules/app`: cloudops-monitor container
+- Both run on the same Docker network; monitor checks nginx periodically
 
 ## Blog Post
 
