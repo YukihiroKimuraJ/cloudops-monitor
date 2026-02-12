@@ -1,5 +1,5 @@
 resource "docker_image" "monitor" {
-  name = var.monitor_image
+  name         = var.monitor_image
   keep_locally = true
 
   build {
