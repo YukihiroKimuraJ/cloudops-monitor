@@ -1,5 +1,6 @@
 resource "docker_image" "monitor" {
   name = var.monitor_image
+  keep_locally = true
 
   build {
     context    = abspath("${path.module}/../../..")

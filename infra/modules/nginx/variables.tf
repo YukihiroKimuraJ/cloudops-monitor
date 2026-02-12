@@ -8,3 +8,9 @@ variable "container_name" {
   type        = string
   default     = "monitor-nginx"
 }
+
+variable "external_port" {
+  description = "Port exposed on localhost"
+  type        = number
+  default     = 8080
+}

@@ -1,21 +1,23 @@
-# ネットワーク（コンテナ同士が通信するため）
-resource "docker_network" "monitor_net" {
-  name = "cloudops-monitor-net"
+resource "docker_image" "nginx" {
+  name         = "nginx:alpine"
+  keep_locally = true
 }
 
-# nginxモジュール（監視対象）
-module "nginx" {
-  source = "./modules/nginx"
+resource "docker_container" "nginx" {
+  name  = var.container_name
+  image = docker_image.nginx.image_id
 
-  network_name   = docker_network.monitor_net.name
-  container_name = "monitor-nginx"
-}
+  networks_advanced {
+    name = var.network_name
+  }
 
-# cloudops-monitorモジュール
-module "app" {
-  source = "./modules/app"
+  ports {
+    internal = 80
+    external = 8080
+  }
 
-  network_name  = docker_network.monitor_net.name
-  nginx_host    = module.nginx.container_name
-  monitor_image = var.monitor_image
+  upload {
+    content = file("${path.module}/nginx-health.conf")
+    file    = "/etc/nginx/conf.d/default.conf"
+  }
 }

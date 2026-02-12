@@ -1,9 +1,9 @@
 output "nginx_url" {
-  description = "Nginx URL (監視対象)"
+  description = "Nginx URL (monitor target)"
   value       = "http://localhost:8080"
 }
 
 output "monitor_container" {
-  description = "cloudops-monitor コンテナ名"
-  value       = docker_container.monitor.name
+  description = "cloudops-monitor container name"
+  value       = module.app.container_name
 }

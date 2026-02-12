@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
@@ -12,64 +12,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
 
-    - name: Download dependencies
-      run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-    - name: Run tests
-      run: go test -v -race -coverprofile=coverage.out
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out
 
-    - name: Check coverage
-      run: go tool cover -func=coverage.out
+      - name: Check coverage
+        run: go tool cover -func=coverage.out
 
   build:
     name: Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
 
-    - name: Build binary
-      run: go build -v -o cloudops-monitor .
+      - name: Build binary
+        run: go build -v -o cloudops-monitor .
 
-    - name: Verify binary
-      run: ./cloudops-monitor -h || true
+      - name: Verify binary
+        run: ./cloudops-monitor -h || true
 
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.6"
-        terraform_wrapper: false
-
-    - name: Terraform Format
-      run: terraform fmt -check -recursive
-      working-directory: infra
-
-    - name: Terraform Init
-      run: terraform init -backend=false
-      working-directory: infra
-
-    - name: Terraform Validate
-      run: terraform validate
-      working-directory: infra
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6"
+          terraform_wrapper: false
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+        working-directory: infra

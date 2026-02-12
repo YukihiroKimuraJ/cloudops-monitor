@@ -232,8 +232,6 @@ This project uses Terraform to provision cloudops-monitor and its monitoring tar
 
 ### Usage
 
-### Usage
-
 ```bash
 cd infra
 terraform init
