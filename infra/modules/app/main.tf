@@ -3,7 +3,7 @@ resource "docker_image" "monitor" {
 
   build {
     context    = abspath("${path.module}/../../..")
-    dockerfile  = "Dockerfile"
+    dockerfile = "Dockerfile"
   }
 }
 
